@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+
+  applicants.api:
+    image: applicants.api       
+    build:
+      context: ./services/applicants.api
+      dockerfile: Dockerfile.debug
+    ports: 
+    - "8081:80"
+    volumes: 
+      - ./services/applicants.api/bin/pub/:/app
+    container_name: applicants.api
+    depends_on:
+      - sql.data
+
+  identity.api:
+    image: identity.api
+    environment:
+      - RedisHost=user.data:6379
+    build:
+      context: ./services/identity.api
+      dockerfile: Dockerfile.debug
+    ports: 
+    - "8084:80"
+    volumes: 
+      - ./services/identity.api/bin/pub/:/app
+    container_name: identity.api     
+
+  jobs.api:
+    image: jobs.api
+    build:
+      context: ./services/jobs.api
+      dockerfile: Dockerfile.debug
+    ports: 
+    - "8083:80"
+    volumes: 
+      - ./services/jobs.api/bin/pub/:/app
+    container_name: jobs.api
+    depends_on:
+      - sql.data
+
+sql.data:
+  image: mssql-linux
+  build:
+    context: ./Database
+    dockerfile: Dockerfile
+  ports:
+      - "5433:1433"
+  container_name: mssql-linux
+
+user.data:
+  image: redis
+
+rabbitmq:
+  image: rabbitmq:3-management
+  ports:
+    - "15672:15672"
+  container_name: rabbitmq
